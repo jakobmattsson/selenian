@@ -35,10 +35,8 @@ exports.run = ({ output, includeTags, excludeTags, source, environments, setuppe
   allFeatures = _.flatten(roots.map((x) -> x.features))
 
   tagFilter = (include, exclude) ->
-    console.log("args", arguments)
     include ||= []
     exclude ||= []
-    console.log(include, exclude)
     (s) -> (
       include.length == 0 ||
       _.intersection(s.tags, include).length > 0 ||
