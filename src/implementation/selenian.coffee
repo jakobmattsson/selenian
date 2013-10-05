@@ -1,6 +1,7 @@
 path = require 'path'
 async = require 'async'
 wd = require 'wd'
+_ = require 'underscore'
 runr = require 'runr'
 baseSteps = require './baseSteps'
 require 'coffee-script' # so coffee-scripts can be passed as setup-scripts
@@ -16,7 +17,7 @@ setupBrowser = (host, { width, height, caps, wdArgs }, callback) ->
         browser.setWindowSize width, height, propagate callback, ->
           callback(null, browser)
 
-exports.run = ({ output, tests, environments, setupper }, callback) ->
+exports.run = ({ output, environments, setupper }, callback) ->
 
   log = (args...) ->
     return if !output
@@ -30,15 +31,22 @@ exports.run = ({ output, tests, environments, setupper }, callback) ->
   killSelenium = runr.up 'selenium', { }, propagate callback, ->
 
     async.forEachSeries environments, (environment, callback) ->
+
+      log("running environment", _.omit(environment, 'tests'))
+
+      if environment.tests.every((test) -> test.scenarios.length == 0)
+        log("No test in this environment; skipping...")
+        callback()
+        return
+
       setupperObject.run {}, propagate callback, ({ host, destructor, beforeTest, afterTest }) ->
-        log("running environemnt", environment)
         setupBrowser host, environment, propagate callback, (browser) ->
 
           funcs = []
           stepDef = (selector, handler) -> funcs.push({ selector, handler })
           baseSteps.defineSteps.call({ browser }, { step: stepDef, browserName: environment.browserName })
 
-          async.forEachSeries tests, (feature, callback) ->
+          async.forEachSeries environment.tests, (feature, callback) ->
             log "FEATURE", feature.name, feature.tags
 
             async.forEachSeries feature.scenarios, (scenario, callback) ->

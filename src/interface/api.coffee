@@ -34,23 +34,35 @@ exports.run = ({ output, includeTags, excludeTags, source, environments, setuppe
   roots = sources.map (s) -> parser.parse(fs.readFileSync(path.resolve(source, s)))
   allFeatures = _.flatten(roots.map((x) -> x.features))
 
+  tagFilter = (include, exclude) ->
+    console.log("args", arguments)
+    include ||= []
+    exclude ||= []
+    console.log(include, exclude)
+    (s) -> (
+      include.length == 0 ||
+      _.intersection(s.tags, include).length > 0 ||
+      _.intersection(s.feature.tags, include).length > 0
+    ) && (
+      _.intersection(s.tags, exclude).length == 0 &&
+      _.intersection(s.feature.tags, exclude).length == 0
+    )
+
   filteredFeatures = allFeatures.map (feature) ->
     name: feature.name
     tags: feature.tags
-    scenarios: feature.scenarios.filter (s) -> (
-      includeTags.length == 0 || 
-      _.intersection(s.tags, includeTags).length > 0 || 
-      _.intersection(s.feature.tags, includeTags).length > 0
-    ) && (
-      _.intersection(s.tags, excludeTags).length == 0 && 
-      _.intersection(s.feature.tags, excludeTags).length == 0
-    ) && (
-      !grep? || s.name.match(grep)
-    )
+    scenarios: feature.scenarios.filter(tagFilter(includeTags, excludeTags)).filter (s) -> !grep? || s.name.match(grep)
+
+  extendedEnvironments = environments.map (e) ->
+    _.extend({}, e, {
+      tests: filteredFeatures.map (feature) ->
+        name: feature.name
+        tags: feature.tags
+        scenarios: feature.scenarios.filter(tagFilter(e.tags?.include, e.tags?.exclude))
+    })
 
   selenian.run {
     output: output
-    tests: filteredFeatures
-    environments: environments
+    environments: extendedEnvironments
     setupper: setupper
   }, callback
