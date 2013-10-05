@@ -23,7 +23,7 @@ exports.formatOutput = (stream, failures) ->
   failures.forEach (x) ->
     stream.write("selenian --grep '^#{x.step.scenario.name}$'\n")
 
-exports.run = ({ output, includeTags, excludeTags, source, environments, setupper, grep }) ->
+exports.run = ({ output, includeTags, excludeTags, source, environments, setupper, grep }, callback) ->
 
   log = (str) ->
     return if !output
@@ -49,6 +49,7 @@ exports.run = ({ output, includeTags, excludeTags, source, environments, setuppe
     )
 
   selenian.run {
+    output: output
     tests: filteredFeatures
     environments: environments
     setupper: setupper

@@ -18,5 +18,5 @@ help.binaryMeta type, process.stdout, ->
       process.exit(1)
       return
 
-    selenian.formatOutput(failures)
+    selenian.formatOutput(process.stdout, failures)
     process.exit(if failures.length == 0 then 0 else 1)

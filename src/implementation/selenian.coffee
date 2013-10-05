@@ -1,7 +1,9 @@
+path = require 'path'
 async = require 'async'
 wd = require 'wd'
 runr = require 'runr'
 baseSteps = require './baseSteps'
+require 'coffee-script' # so coffee-scripts can be passed as setup-scripts
 
 propagate = (onErr, onSucc) -> (err, rest...) -> if err? then onErr(err) else onSucc(rest...)
 
@@ -14,19 +16,21 @@ setupBrowser = (host, { width, height, caps, wdArgs }, callback) ->
         browser.setWindowSize width, height, propagate callback, ->
           callback(null, browser)
 
-exports.run = ({ output, tests, environments, testFolder, setupper }, callback) ->
+exports.run = ({ output, tests, environments, setupper }, callback) ->
 
   log = (args...) ->
     return if !output
-    output.write(args.map((x) -> x ? '').join(' '))
+    output.write(args.map((x) -> x ? '').map((x) -> if typeof x == 'string' then x else JSON.stringify(x)).join(' '))
     output.write('\n')
 
   failures = []
 
+  setupperObject = require(path.resolve(process.cwd(), setupper))
+
   killSelenium = runr.up 'selenium', { }, propagate callback, ->
 
     async.forEachSeries environments, (environment, callback) ->
-      setupper.run {}, propagate callback, ({ host, destructor, beforeTest, afterTest }) ->
+      setupperObject.run {}, propagate callback, ({ host, destructor, beforeTest, afterTest }) ->
         log("running environemnt", environment)
         setupBrowser host, environment, propagate callback, (browser) ->
 
