@@ -1,0 +1,42 @@
+{
+  "name": "selenian",
+  "description": "Extensible and parallelizable mashup of cucumber and selenium",
+  "main": "./lib/interface/api.js",
+  "bin": {
+    "selenian": "./bin/selenian"
+  },
+  "version": "0.1.0",
+  "author": "Jakob Mattsson <jakob.mattsson@gmail.com> (jakobmattsson.se)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jakobmattsson/selenian.git"
+  },
+  "engines": {
+    "npm": ">= 1.3",
+    "node": ">= 0.10.13"
+  },
+  "dependencies": {
+    "async": "^0.2.9",
+    "wd": "^0.1.5",
+    "runr": "^0.4.3",
+    "wd-tools": "^0.2.0",
+    "gherkin": "^2.12.1",
+    "optimist": "^0.6",
+    "wrench": "^1.5.1",
+    "underscore": "^1.5.2",
+    "nconf": "^0.6"
+  },
+  "devDependencies": {
+    "jscov": "^0.5.7",
+    "mocha": "^1.12.1",
+    "mocha-term-cov-reporter": "^0.1.4",
+    "should": "^1.2.2",
+    "coffee-script": "^1.6.3"
+  },
+  "scripts": {
+    "coverage": "jscov --expand src .cov && JSCOV=.cov mocha --compilers coffee:coffee-script --reporter mocha-term-cov-reporter --recursive spec",
+    "test": "mocha --compilers coffee:coffee-script --recursive spec",
+    "pretest": "coffee -co lib src",
+    "prepublish": "coffee -co lib src"
+  }
+}
